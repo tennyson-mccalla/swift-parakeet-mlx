@@ -5,14 +5,11 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 [![MLX](https://img.shields.io/badge/MLX-Swift-purple.svg)](https://github.com/ml-explore/mlx-swift)
 
-A Swift implementation of the Parakeet speech recognition models using MLX Swift. This library provides high-performance speech-to-text transcription capabilities for **macOS and iOS applications**. 
-
-> **🎯 Perfect for**: iOS apps, macOS apps, real-time transcription, audio processing pipelines, and accessibility features.
-
-The code was translated from [senstella/parakeet-mlx](https://github.com/senstella/parakeet-mlx) - all credits go to the original creator. We are merely translating it to Swift so that we can use it to build iOS/macOS apps!
+A Swift implementation of the Parakeet speech recognition models using MLX Swift. The code was translated from [senstella/parakeet-mlx](https://github.com/senstella/parakeet-mlx) - all credits go to the original creator. We are merely translating it to Swift so that we can use it to build iOS/macOS apps!
 
 **Note**: We have focused on the TDT (Token-Duration-Transducer) variant of the Parakeet model. We have only tested `mlx-community/parakeet-tdt-0.6b-v2`. If you want to use other variants, PRs are welcome! We also need to properly implement caching here as well. 
 
+Clone the repo and run the TranscriptionApp to test it out:
 ![Screenshot](examples/screenshot.png)
 
 ## Requirements
@@ -90,39 +87,6 @@ let model = try await loadParakeetModel(
 )
 ```
 
-### Chunked Processing for Long Audio
-
-```swift
-// Process long audio with chunking
-let result = try model.transcribe(
-    audioData: longAudioData,
-    chunkDuration: 30.0,        // 30-second chunks
-    overlapDuration: 5.0,       // 5-second overlap
-    chunkCallback: { current, total in
-        let progress = (current / total) * 100
-        print("Progress: \(String(format: "%.1f", progress))%")
-    }
-)
-```
-
-### Streaming Inference (Real-time)
-
-```swift
-// Create a streaming session
-let streamingSession = model.transcribeStream(
-    contextSize: (256, 256),    // Left and right context
-    depth: 1                    // Cache depth
-)
-
-// Add audio chunks as they arrive
-streamingSession.addAudio(audioChunk1)
-streamingSession.addAudio(audioChunk2)
-
-// Get incremental results
-let partialResult = streamingSession.result
-print("Current transcription: \(partialResult.text)")
-```
-
 ## 📱 Sample Application
 
 A complete SwiftUI application example is included in the `Sources/TranscriptionApp/` directory. This demonstrates a fully-featured transcription app with a modern, cross-platform UI.
@@ -149,17 +113,6 @@ The easiest way to get started is to run the included sample app:
    - **macOS**: Build and run on Mac (requires macOS 14+)
 
 5. **Test**: Select audio files and watch the AI transcribe them!
-
-### Key Features
-
-- **Universal file picker** for selecting audio files (iOS Documents & macOS Finder)
-- **Progress tracking** for model download and transcription with platform-optimized layouts
-- **Time-aligned results** showing when each sentence was spoken
-- **Smart clipboard integration** (UIPasteboard on iOS, NSPasteboard on macOS)
-- **Adaptive navigation** (NavigationStack on iOS, NavigationSplitView on macOS)
-- **Platform-specific UI optimizations** for the best user experience
-- **Error handling** with clear user feedback
-- **Responsive design** that works on phones, tablets, and desktop screens
 
 ### Integration into Your App
 
@@ -188,107 +141,6 @@ Audio is automatically converted to 16kHz mono for processing.
 Currently supports Parakeet-TDT (Token-Duration-Transducer) models:
 
 - `mlx-community/parakeet-tdt-0.6b-v2` - Main model (default, ~2.5GB)
-- Custom models following the same architecture
-
-## 📚 API Reference
-
-### Core Classes
-
-#### `ParakeetTDT`
-
-The main model class for speech recognition.
-
-```swift
-public class ParakeetTDT: Module {
-    public func transcribe(
-        audioData: MLXArray,
-        dtype: DType = .bfloat16,
-        chunkDuration: Float? = nil,
-        overlapDuration: Float = 15.0,
-        chunkCallback: ((Float, Float) -> Void)? = nil
-    ) throws -> AlignedResult
-    
-    public func transcribeStream(
-        contextSize: (Int, Int) = (256, 256),
-        depth: Int = 1
-    ) -> StreamingParakeet
-    
-    public func generate(mel: MLXArray) throws -> [AlignedResult]
-    
-    public func encode(_ input: MLXArray, cache: [ConformerCache?]? = nil) -> (MLXArray, MLXArray)
-}
-```
-
-#### `AlignedResult`
-
-Contains the transcription results with timing information.
-
-```swift
-public struct AlignedResult {
-    public let sentences: [AlignedSentence]
-    public var text: String { get }
-}
-
-public struct AlignedSentence {
-    public let tokens: [AlignedToken]
-    public let start: Float
-    public let end: Float
-    public var text: String { get }
-}
-
-public struct AlignedToken {
-    public let id: Int
-    public var start: Float
-    public var duration: Float
-    public let text: String
-    public var end: Float { get set }
-}
-```
-
-#### `StreamingParakeet`
-
-For real-time streaming transcription.
-
-```swift
-public class StreamingParakeet {
-    public var result: AlignedResult { get }
-    public func addAudio(_ audio: MLXArray) throws
-}
-```
-
-### Model Loading
-
-```swift
-public func loadParakeetModel(
-    from modelPath: String,
-    dtype: DType = .bfloat16,
-    cacheDirectory: URL? = nil,
-    progressHandler: ((Progress) -> Void)? = nil
-) async throws -> ParakeetTDT
-```
-
-Loads a model from:
-
-- **Hugging Face Hub ID** (e.g., "mlx-community/parakeet-tdt-0.6b-v2")
-- **Local directory path** containing `config.json` and `model.safetensors`
-
-### Utility Functions
-
-```swift
-// Get recommended cache directory for sandboxed apps
-public func getParakeetCacheDirectory() -> URL?
-
-// Process audio to mel spectrogram (used internally)
-public func getLogMel(_ audio: MLXArray, config: PreprocessConfig) throws -> MLXArray
-```
-
-## ⚡ Performance Tips
-
-1. **Use bfloat16**: Provides good accuracy with reduced memory usage
-2. **Adjust chunk size**: Larger chunks are more efficient but use more memory
-3. **Optimize context size**: For streaming, balance accuracy vs. latency
-4. **Batch processing**: Process multiple files in sequence to amortize model loading
-5. **Cache models**: Use `getParakeetCacheDirectory()` for persistent caching
 
 ## 💻 Example Integration
 
