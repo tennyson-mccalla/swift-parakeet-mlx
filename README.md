@@ -270,10 +270,6 @@ func loadAudioFile(_ path: String) throws -> MLXArray {
 }
 ```
 
-## 📄 License
-
-This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
-
 ## 🙏 Acknowledgments
 
 - Based on the original [Parakeet MLX Python implementation](https://github.com/senstella/parakeet-mlx)
