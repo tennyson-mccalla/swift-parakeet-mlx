@@ -13,6 +13,8 @@ The code was translated from [senstella/parakeet-mlx](https://github.com/senstel
 
 **Note**: We have focused on the TDT (Token-Duration-Transducer) variant of the Parakeet model. We have only tested `mlx-community/parakeet-tdt-0.6b-v2`. If you want to use other variants, PRs are welcome! We also need to properly implement caching here as well. 
 
+![Screenshot](examples/screenshot.png)
+
 ## Requirements
 
 - **macOS 14.0+ or iOS 16.0+**
