@@ -379,11 +379,11 @@ public class RelPositionMultiHeadLocalAttention: RelPositionMultiHeadAttention {
             if (!is_out_of_bounds) {
                 uint s_k_idx = uint(s_k_idx_signed);
 
-                // q[b, h, s_q, d]
+            
                 uint Q_D_stride = D;
                 uint Q_S_stride = S_q * Q_D_stride;
                 uint Q_H_stride = H * Q_S_stride;
-                // k[b, h, s_k, d]
+            
                 uint K_D_stride = D;
                 uint K_S_stride = S_k * K_D_stride;
                 uint K_H_stride = H * K_S_stride;
@@ -481,10 +481,10 @@ public class RelPositionMultiHeadLocalAttention: RelPositionMultiHeadAttention {
             // out[b, s_p, h, d]
             uint O_S_stride = D_v * H;
             uint O_B_stride = S_p * O_S_stride;
-    
+            
             uint stick_p_v_idx = S_v - S_p + s_p_idx;
             // stick to right (assuming S_v >= S_p)
-    
+            
             for (uint k = 0; k < K_rel; ++k) {
                 int s_v_idx_signed = int(stick_p_v_idx) + int(k) - int(W);  // for boundary check
                 if (s_v_idx_signed >= 0 && s_v_idx_signed < S_v) {
